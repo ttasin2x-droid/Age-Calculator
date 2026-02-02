@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Premium age calculator with generation detection, celebrity matches, and life insights. Built by Tanvir Tasin.">
+    <meta name="author" content="Tanvir Tasin">
+    <title>Chrono | Ultimate Age Calculator</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="noise"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon">⏱</div>
+                <h1 class="brand-text">Chrono</h1>
+            </div>
+            <p class="watermark">Built by Tanvir Tasin</p>
+        </header>
+
+        <!-- Input Section -->
+        <section class="input-wrap">
+            <div class="input-field">
+                <label for="birthdate">Date of Birth</label>
+                <input type="date" id="birthdate" max="" required>
+            </div>
+
+            <p class="gen-label">Quick Select Generation</p>
+            <div class="gen-bar">
+                <button class="gen-chip" data-gen="boomer" onclick="selectGen('boomer', 1955, this)" title="Baby Boomers (1946-1964)">
+                    <span class="gen-emoji">📻</span>
+                    <span class="gen-text">Boomer</span>
+                </button>
+                <button class="gen-chip" data-gen="x" onclick="selectGen('x', 1972, this)" title="Generation X (1965-1980)">
+                    <span class="gen-emoji">📼</span>
+                    <span class="gen-text">Gen X</span>
+                </button>
+                <button class="gen-chip" data-gen="millennial" onclick="selectGen('millennial', 1988, this)" title="Millennials (1981-1996)">
+                    <span class="gen-emoji">📟</span>
+                    <span class="gen-text">Millennial</span>
+                </button>
+                <button class="gen-chip" data-gen="z" onclick="selectGen('z', 2002, this)" title="Generation Z (1997-2012)">
+                    <span class="gen-emoji">📱</span>
+                    <span class="gen-text">Gen Z</span>
+                </button>
+                <button class="gen-chip" data-gen="alpha" onclick="selectGen('alpha', 2015, this)" title="Generation Alpha (2013-2025)">
+                    <span class="gen-emoji">🤖</span>
+                    <span class="gen-text">Alpha</span>
+                </button>
+            </div>
+
+            <button class="btn-calc" onclick="calculate()" id="calcBtn">
+                Calculate Age <span>→</span>
+            </button>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results" id="results" aria-live="polite">
+            
+            <!-- Generation Badge -->
+            <article class="gen-badge" id="genBadge">
+                <span class="gen-icon" id="genIcon">📱</span>
+                <h2 class="gen-name" id="genName">Generation Z</h2>
+                <p class="gen-tagline" id="genTagline">Digital natives ruling the internet</p>
+            </article>
+
+            <!-- Age Card -->
+            <article class="age-card">
+                <div class="age-num" id="mainAge">0</div>
+                <p class="age-meta" id="ageMeta">Select your birth date</p>
+                <div class="age-breakdown">
+                    <div class="age-unit">
+                        <span class="age-value" id="ageMonths">0</span>
+                        <span class="age-label">Months</span>
+                    </div>
+                    <div class="age-unit">
+                        <span class="age-value" id="ageWeeks">0</span>
+                        <span class="age-label">Weeks</span>
+                    </div>
+                    <div class="age-unit">
+                        <span class="age-value" id="ageDays">0</span>
+                        <span class="age-label">Days</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Celebrity Match -->
+            <article class="celeb-card" onclick="celebs.refresh()" title="Click to find another match">
+                <div class="celeb-avatar" id="celebAvatar">🌟</div>
+                <div class="celeb-info">
+                    <p class="celeb-title">Age Twin Celebrity</p>
+                    <p class="celeb-name" id="celebName">Tap to find match</p>
+                </div>
+                <span class="celeb-age" id="celebAge">--</span>
+            </article>
+
+            <!-- Personality Card -->
+            <article class="personality-card">
+                <div class="personality-header">
+                    <div class="personality-avatar" id="personaIcon">🎯</div>
+                    <div>
+                        <p class="personality-title">Life Stage Persona</p>
+                        <h3 class="personality-type" id="personaType">Waiting...</h3>
+                    </div>
+                </div>
+                <div class="traits" id="traits">
+                    <span class="trait">Calculate age first</span>
+                </div>
+            </article>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <article class="stat-box" title="Total heartbeats since birth">
+                    <span class="stat-value" id="statHeartbeats">--</span>
+                    <span class="stat-label">Heartbeats</span>
+                </article>
+                <article class="stat-box" title="Total breaths taken">
+                    <span class="stat-value" id="statBreaths">--</span>
+                    <span class="stat-label">Breaths</span>
+                </article>
+                <article class="stat-box" title="Kilometers traveled around sun">
+                    <span class="stat-value" id="statOrbit">--</span>
+                    <span class="stat-label">Km Orbit</span>
+                </article>
+            </div>
+
+            <!-- Timeline -->
+            <article class="timeline-card">
+                <h3 class="timeline-title">📍 Life Journey Map</h3>
+                <div class="timeline-track">
+                    <div class="timeline-bar"></div>
+                    <div class="timeline-progress" id="timelineProgress" style="width: 0%"></div>
+                    <div class="timeline-marks">
+                        <div class="mark" style="left: 15%"><span class="mark-label">Child</span></div>
+                        <div class="mark" style="left: 25%"><span class="mark-label">Teen</span></div>
+                        <div class="mark" style="left: 44%"><span class="mark-label">Adult</span></div>
+                        <div class="mark" style="left: 75%"><span class="mark-label">Senior</span></div>
+                    </div>
+                </div>
+                <div class="milestones" id="milestones">
+                    <div class="milestone">
+                        <span class="milestone-age">--</span>
+                        <span class="milestone-label">Waiting</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Fun Facts -->
+            <div class="facts-scroll" id="factsScroll">
+                <div class="fact-pill">
+                    <span class="fact-emoji">⏳</span>
+                    <div class="fact-data">
+                        <span class="fact-num">--</span>
+                        <span class="fact-label">Calculate First</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <article class="chart-card">
+                <canvas id="ageChart"></canvas>
+            </article>
+
+            <!-- Birthday Countdown -->
+            <article class="countdown-card">
+                <h3 class="countdown-title">🎂 Next Birthday In</h3>
+                <div class="countdown-grid">
+                    <div class="countdown-box">
+                        <span class="countdown-num" id="cdDays">0</span>
+                        <span class="countdown-unit">Days</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span class="countdown-num" id="cdHours">0</span>
+                        <span class="countdown-unit">Hours</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span class="countdown-num" id="cdMins">0</span>
+                        <span class="countdown-unit">Mins</span>
+                    </div>
+                    <div class="countdown-box">
+                        <span class="countdown-num" id="cdSecs">0</span>
+                        <span class="countdown-unit">Secs</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Details List -->
+            <div class="details-list">
+                <article class="detail-row">
+                    <div class="detail-left">
+                        <span class="detail-icon">🎂</span>
+                        <div class="detail-text">
+                            <h4>Next Birthday</h4>
+                            <p>Days until celebration</p>
+                        </div>
+                    </div>
+                    <span class="detail-value" id="detailNextBday">--</span>
+                </article>
+                <article class="detail-row">
+                    <div class="detail-left">
+                        <span class="detail-icon">🌍</span>
+                        <div class="detail-text">
+                            <h4>Earth Distance</h4>
+                            <p>Traveled around the sun</p>
+                        </div>
+                    </div>
+                    <span class="detail-value" id="detailOrbit">--</span>
+                </article>
+                <article class="detail-row">
+                    <div class="detail-left">
+                        <span class="detail-icon">⚡</span>
+                        <div class="detail-text">
+                            <h4>Life Progress</h4>
+                            <p>Based on 80 year average</p>
+                        </div>
+                    </div>
+                    <span class="detail-value" id="detailProgress">--</span>
+                </article>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn-action" onclick="copyResults()">📋 Copy</button>
+                <button class="btn-action" onclick="shareResults()">↗️ Share</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast" role="status" aria-live="polite">Copied to clipboard!</div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+</body>
+</html>
