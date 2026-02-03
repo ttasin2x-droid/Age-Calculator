@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrono | Ultimate Age Calculator</title>
+    <meta name="description" content="Premium age calculator with generation detection, celebrity matches, and life insights. Built by Tanvir Tasin.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #030303;
+            --surface: #0a0a0a;
+            --elevated: #141414;
+            --border: #222;
+            --text: #fff;
+            --text-dim: #666;
+            --accent: #6366f1;
+            --accent-glow: rgba(99,102,241,0.4);
+            --gen-boomer: #f59e0b;
+            --gen-x: #ec4899;
+            --gen-millennial: #8b5cf6;
+            --gen-z: #06b6d4;
+            --gen-alpha: #22c55e;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* Background Effects */
+        .noise {
+            position: fixed;
+            inset: 0;
+            opacity: 0.03;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            z-index: 0;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb-1 { width: 400px; height: 400px; background: var(--accent); top: -200px; left: -100px; }
+        .orb-2 { width: 300px; height: 300px; background: #ec4899; bottom: -100px; right: -50px; }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 32px 16px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            user-select: none;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 0 20px var(--accent-glow);
+            animation: pulse 3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            z-index: 0;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb-1 { width: 400px; height: 400px; background: var(--accent); top: -200px; left: -100px; }
+        .orb-2 { width: 300px; height: 300px; background: #ec4899; bottom: -100px; right: -50px; }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 32px 16px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            user-select: none;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 0 20px var(--accent-glow);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+            50% { box-shadow: 0 0 30px var(--accent-glow), 0 0 40px rgba(139,92,246,0.3); }
+        }
+
+        .brand-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .watermark {
+            font-size: 0.625rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        /* Input Section */
+        .input-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.3s;
+        }
+
+        .input-wrap:focus-within {
+            border-color: var(--accent);
+        }
+
+        .input-field {
+            margin-bottom: 12px;
+        }
+
+        .input-field:last-child { margin-bottom: 0; }
+
+        label {
+            display: block;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text);
+            font-size: 0.9375rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        input[type="date"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.4);
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        /* Generation Selector - Ultra Compact */
+        .gen-label {
+            font-size: 0.625rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .gen-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .gen-chip {
+            flex: 1;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 2px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .gen-chip:hover { 
+            border-color: var(--accent); 
+            transform: translateY(-1px);
+        }
+
+        .gen-chip.active { 
+            background: var(--accent); 
+            border-color: var(--accent);
+            color: white;
+            transform: scale(0.95);
+        }
+
+        .gen-chip[data-gen="boomer"].active { background: var(--gen-boomer); border-color: var(--gen-boomer); }
+        .gen-chip[data-gen="x"].active { background: var(--gen-x); border-color: var(--gen-x); }
+        .gen-chip[data-gen="millennial"].active { background: var(--gen-millennial); border-color: var(--gen-millennial); }
+        .gen-chip[data-gen="z"].active { background: var(--gen-z); border-color: var(--gen-z); }
+        .gen-chip[data-gen="alpha"].active { background: var(--gen-alpha); border-color: var(--gen-alpha); }
+
+        .gen-emoji { font-size: 1rem; display: block; margin-bottom: 2px; }
+        .gen-text { font-size: 0.5625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Calculate Button */
+        .btn-calc {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-calc::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-calc:hover::before {
+            left: 100%;
+        }
+
+        .btn-calc:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px var(--accent-glow);
+        }
+
+        .btn-calc:active {
+            transform: scale(0.98);
+        }
+
+        /* Results Section */
+        .results { 
+            display: none; 
+            animation: fadeUp 0.6s ease; 
+        }
+
+        @keyframes fadeUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Generation Badge */
+        .gen-badge {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .gen-badge:hover {
+            transform: translateY(-2px);
+        }
+
+        .gen-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .gen-badge.boomer::before { background: var(--gen-boomer); }
+        .gen-badge.x::before { background: var(--gen-x); }
+        .gen-badge.millennial::before { background: var(--gen-millennial); }
+        .gen-badge.z::before { background: var(--gen-z); }
+        .gen-badge.alpha::before { background: var(--gen-alpha); }
+
+        .gen-icon { font-size: 2rem; margin-bottom: 6px; display: inline-block; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        .gen-name { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .gen-tagline { font-size: 0.75rem; color: var(--text-dim); line-height: 1.4; }
+
+        /* Age Card */
+        .age-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .age-card:hover {
+            border-color: rgba(99,102,241,0.3);
+        }
+
+        .age-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(135deg, #fff, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            transition: transform 0.3s;
+        }
+
+        .age-card:hover .age-num {
+            transform: scale(1.05);
+        }
+
+        .age-meta {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .age-breakdown {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .age-unit { text-align: center; }
+        .age-value { font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+        .age-label { font-size: 0.625rem; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+
+        /* Celebrity Card */
+        .celeb-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .celeb-card:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .celeb-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--elevated);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 2px solid var(--border);
+            transition: transform 0.3s;
+        }
+
+        .celeb-card:hover .celeb-avatar {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .celeb-info { flex: 1; }
+        .celeb-title { font-size: 0.6875rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .celeb-name { font-size: 0.9375rem; font-weight: 600; }
+        .celeb-age { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--accent); font-weight: 700; }
+
+        /* Personality Card */
+        .personality-card {
+            background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(236,72,153,0.05));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+
+        .personality-card:hover {
+            border-color: rgba(99,102,241,0.3);
+        }
+
+        .personality-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .personality-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--surface);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            border: 1px solid var(--border);
+        }
+
+        .personality-title { font-size: 0.6875rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .personality-type { font-size: 1.125rem; font-weight: 700; margin-top: 2px; }
+
+        .traits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .trait {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            cursor: default;
+        }
+
+        .trait:hover {
+            background: rgba(99,102,241,0.2);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 6px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-box:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.625rem; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+
+        /* Timeline */
+        .timeline-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .timeline-title { 
+            font-size: 0.8125rem; 
+            font-weight: 600; 
+            margin-bottom: 16px; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+
+        .timeline-track { position: relative; height: 40px; margin-bottom: 16px; }
+        
+        .timeline-bar {
+            position: absolute;
+            height: 3px;
+            background: var(--elevated);
+            border-radius: 2px;
+            top: 18px;
+            left: 0;
+            right: 0;
+        }
+
+        .timeline-progress {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #ec4899);
+            border-radius: 2px;
+            top: 18px;
+            left: 0;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(99,102,241,0.3);
+        }
+
+        .timeline-marks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+        }
+
+        .mark {
+            position: absolute;
+            top: 12px;
+            width: 2px;
+            height: 16px;
+            background: var(--border);
+            border-radius: 1px;
+            transition: all 0.3s;
+        }
+
+        .mark.active { 
+            background: var(--accent); 
+            height: 20px; 
+            top: 10px; 
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .mark-label {
+            position: absolute;
+            top: 28px;
+            font-size: 0.625rem;
+            color: var(--text-dim);
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        .milestones {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+
+        .milestones::-webkit-scrollbar { display: none; }
+
+        .milestone {
+            flex: 0 0 auto;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            text-align: center;
+            min-width: 70px;
+            transition: all 0.3s;
+        }
+
+        .milestone:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .milestone.current {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .milestone-age { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; font-weight: 700; }
+        .milestone-label { font-size: 0.625rem; opacity: 0.8; margin-top: 2px; }
+
+        /* Fun Facts */
+        .facts-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-bottom: 12px;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+
+        .facts-scroll::-webkit-scrollbar { display: none; }
+
+        .fact-pill {
+            flex: 0 0 auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            cursor: default;
+        }
+
+        .fact-pill:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .fact-emoji { font-size: 1.25rem; }
+        .fact-data { text-align: left; }
+        .fact-num { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; font-weight: 700; }
+        .fact-label { font-size: 0.625rem; color: var(--text-dim); text-transform: uppercase; }
+
+        /* Chart */
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            height: 160px;
+        }
+
+        /* Countdown */
+        .countdown-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), #ec4899, var(--accent));
+            animation: shimmer 3s infinite linear;
+        }
+
+        @keyframes shimmer { from { left: -100%; } to { left: 100%; } }
+
+        .countdown-title { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 16px; }
+        
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .countdown-box { 
+            background: var(--elevated); 
+            border-radius: 8px; 
+            padding: 12px 4px; 
+            transition: all 0.3s;
+        }
+
+        .countdown-box:hover {
+            transform: translateY(-2px);
+            background: rgba(99,102,241,0.1);
+        }
+
+        .countdown-num { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--accent); line-height: 1; }
+        .countdown-unit { font-size: 0.625rem; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+
+        /* Details List */
+        .details-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+        .detail-row {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .detail-row:hover {
+            border-color: rgba(99,102,241,0.3);
+            transform: translateX(4px);
+        }
+
+        .detail-left { display: flex; align-items: center; gap: 12px; }
+        .detail-icon { font-size: 1.25rem; transition: transform 0.3s; }
+        .detail-row:hover .detail-icon { transform: scale(1.2); }
+        
+        .detail-text h4 { font-size: 0.875rem; font-weight: 600; }
+        .detail-text p { font-size: 0.6875rem; color: var(--text-dim); margin-top: 2px; }
+        
+        .detail-value { 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 0.9375rem; 
+            font-weight: 700; 
+            color: var(--accent);
+            transition: all 0.3s;
+        }
+
+        .detail-row:hover .detail-value {
+            transform: scale(1.1);
+        }
+
+        /* Action Buttons */
+        .actions { display: flex; gap: 8px; }
+        
+        .btn-action {
+            flex: 1;
+            padding: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover { 
+            background: var(--elevated); 
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .container { padding: 24px 12px; }
+            .age-num { font-size: 3rem; }
+            .countdown-num { font-size: 1.25rem; }
+            .gen-bar { gap: 4px; }
+            .gen-chip { padding: 6px 2px; }
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="brand">
+                <div class="brand-icon">⏱</div>
+                <div class="brand-text">Chrono</div>
+            </div>
+            <div class="watermark">Built by Tanvir Tasin</div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-wrap">
+            <div class="input-field">
+                <label>Date of Birth</label>
+                <input type="date" id="birthdate" max="" required>
+            </div>
+
+            <div class="gen-label">Quick Select Generation</div>
+            <div class="gen-bar">
+                <div class="gen-chip" data-gen="boomer" onclick="selectGen('boomer', 1955, this)" title="Baby Boomers (1946-1964)">
+                    <span class="gen-emoji">📻</span>
+                    <span class="gen-text">Boomer</span>
+                </div>
+                <div class="gen-chip" data-gen="x" onclick="selectGen('x', 1972, this)" title="Generation X (1965-1980)">
+                    <span class="gen-emoji">📼</span>
+                    <span class="gen-text">Gen X</span>
+                </div>
+                <div class="gen-chip" data-gen="millennial" onclick="selectGen('millennial', 1988, this)" title="Millennials (1981-1996)">
+                    <span class="gen-emoji">📟</span>
+                    <span class="gen-text">Millennial</span>
+                </div>
+                <div class="gen-chip" data-gen="z" onclick="selectGen('z', 2002, this)" title="Generation Z (1997-2012)">
+                    <span class="gen-emoji">📱</span>
+                    <span class="gen-text">Gen Z</span>
+                </div>
+                <div class="gen-chip" data-gen="alpha" onclick="selectGen('alpha', 2015, this)" title="Generation Alpha (2013-2025)">
+                    <span class="gen-emoji">🤖</span>
+                    <span class="gen-text">Alpha</span>
+                </div>
+            </div>
+
+            <button class="btn-calc" onclick="calculate()" id="calcBtn">
+                Calculate Age <span>→</span>
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <!-- Generation Badge -->
+            <div class="gen-badge" id="genBadge">
+                <div class="gen-icon" id="genIcon">📱</div>
+                <div class="gen-name" id="genName">Generation Z</div>
+                <div class="gen-tagline" id="genTagline">Digital natives ruling the internet</div>
+            </div>
+
+            <!-- Age Card -->
+            <div class="age-card">
+                <div class="age-num" id="mainAge">0</div>
+                <div class="age-meta" id="ageMeta">Select your birth date</div>
+                <div class="age-breakdown">
+                    <div class="age-unit">
+                        <div class="age-value" id="ageMonths">0</div>
+                        <div class="age-label">Months</div>
+                    </div>
+                    <div class="age-unit">
+                        <div class="age-value" id="ageWeeks">0</div>
+                        <div class="age-label">Weeks</div>
+                    </div>
+                    <div class="age-unit">
+                        <div class="age-value" id="ageDays">0</div>
+                        <div class="age-label">Days</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Celebrity Match -->
+            <div class="celeb-card" onclick="celebs.refresh()">
+                <div class="celeb-avatar" id="celebAvatar">🌟</div>
+                <div class="celeb-info">
+                    <div class="celeb-title">Age Twin Celebrity</div>
+                    <div class="celeb-name" id="celebName">Tap to find match</div>
+                </div>
+                <div class="celeb-age" id="celebAge">--</div>
+            </div>
+
+            <!-- Personality -->
+            <div class="personality-card">
+                <div class="personality-header">
+                    <div class="personality-avatar" id="personaIcon">🎯</div>
+                    <div>
+                        <div class="personality-title">Life Stage Persona</div>
+                        <div class="personality-type" id="personaType">Waiting...</div>
+                    </div>
+                </div>
+                <div class="traits" id="traits">
+                    <span class="trait">Calculate age first</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-box" title="Total heartbeats since birth">
+                    <div class="stat-value" id="statHeartbeats">--</div>
+                    <div class="stat-label">Heartbeats</div>
+                </div>
+                <div class="stat-box" title="Total breaths taken">
+                    <div class="stat-value" id="statBreaths">--</div>
+                    <div class="stat-label">Breaths</div>
+                </div>
+                <div class="stat-box" title="Kilometers traveled around sun">
+                    <div class="stat-value" id="statOrbit">--</div>
+                    <div class="stat-label">Km Orbit</div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-card">
+                <div class="timeline-title">📍 Life Journey Map</div>
+                <div class="timeline-track">
+                    <div class="timeline-bar"></div>
+                    <div class="timeline-progress" id="timelineProgress" style="width: 0%"></div>
+                    <div class="timeline-marks">
+                        <div class="mark" style="left: 15%"><div class="mark-label">Child</div></div>
+                        <div class="mark" style="left: 25%"><div class="mark-label">Teen</div></div>
+                        <div class="mark" style="left: 44%"><div class="mark-label">Adult</div></div>
+                        <div class="mark" style="left: 75%"><div class="mark-label">Senior</div></div>
+                    </div>
+                </div>
+                <div class="milestones" id="milestones">
+                    <div class="milestone"><div class="milestone-age">--</div><div class="milestone-label">Waiting</div></div>
+                </div>
+            </div>
+
+            <!-- Fun Facts -->
+            <div class="facts-scroll" id="factsScroll">
+                <div class="fact-pill"><span class="fact-emoji">⏳</span><div class="fact-data"><div class="fact-num">--</div><div class="fact-label">Calculate First</div></div></div>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-card">
+                <canvas id="ageChart"></canvas>
+            </div>
+
+            <!-- Countdown -->
+            <div class="countdown-card">
+                <div class="countdown-title">🎂 Next Birthday In</div>
+                <div class="countdown-grid">
+                    <div class="countdown-box"><div class="countdown-num" id="cdDays">0</div><div class="countdown-unit">Days</div></div>
+                    <div class="countdown-box"><div class="countdown-num" id="cdHours">0</div><div class="countdown-unit">Hours</div></div>
+                    <div class="countdown-box"><div class="countdown-num" id="cdMins">0</div><div class="countdown-unit">Mins</div></div>
+                    <div class="countdown-box"><div class="countdown-num" id="cdSecs">0</div><div class="countdown-unit">Secs</div></div>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="details-list">
+                <div class="detail-row">
+                    <div class="detail-left">
+                        <div class="detail-icon">🎂</div>
+                        <div class="detail-text"><h4>Next Birthday</h4><p>Days until celebration</p></div>
+                    </div>
+                    <div class="detail-value" id="detailNextBday">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-left">
+                        <div class="detail-icon">🌍</div>
+                        <div class="detail-text"><h4>Earth Distance</h4><p>Traveled around the sun</p></div>
+                    </div>
+                    <div class="detail-value" id="detailOrbit">--</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-left">
+                        <div class="detail-icon">⚡</div>
+                        <div class="detail-text"><h4>Life Progress</h4><p>Based on 80 year average</p></div>
+                    </div>
+                    <div class="detail-value" id="detailProgress">--</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn-action" onclick="copyResults()">📋 Copy</button>
+                <button class="btn-action" onclick="shareResults()">↗️ Share</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        // Initialize
+        document.getElementById('birthdate').max = new Date().toISOString().split('T')[0];
+
+        let countdownInterval;
+        let ageChart;
+        let selectedGen = null;
+        let currentCelebIndex = 0;
+        let matchedCelebs = [];
+
+        // Data
+        const generations = {
+            boomer: { icon: '📻', name: 'Baby Boomer', tagline: 'The post-war builders (1946-1964)', color: 'boomer' },
+            x: { icon: '📼', name: 'Generation X', tagline: 'The independent latchkey kids (1965-1980)', color: 'x' },
+            millennial: { icon: '📟', name: 'Millennial', tagline: 'The optimistic digital pioneers (1981-1996)', color: 'millennial' },
+            z: { icon: '📱', name: 'Generation Z', tagline: 'True digital natives (1997-2012)', color: 'z' },
+            alpha: { icon: '🤖', name: 'Generation Alpha', tagline: 'The AI-powered future (2013-2025)', color: 'alpha' }
+        };
+
+        const celebrities = [
+            { name: "Cristiano Ronaldo", year: 1985, avatar: "⚽" },
+            { name: "Lionel Messi", year: 1987, avatar: "⚽" },
+            { name: "Taylor Swift", year: 1989, avatar: "🎵" },
+            { name: "Ariana Grande", year: 1993, avatar: "🎤" },
+            { name: "Justin Bieber", year: 1994, avatar: "🎸" },
+            { name: "Selena Gomez", year: 1992, avatar: "🌟" },
+            { name: "Timothée Chalamet", year: 1995, avatar: "🎭" },
+            { name: "Zendaya", year: 1996, avatar: "🎬" },
+            { name: "Tom Holland", year: 1996, avatar: "🕷️" },
+            { name: "Billie Eilish", year: 2001, avatar: "🎵" },
+            { name: "Millie Bobby Brown", year: 2004, avatar: "👽" },
+            { name: "Greta Thunberg", year: 2003, avatar: "🌍" },
+            { name: "Elon Musk", year: 1971, avatar: "🚀" },
+            { name: "Dwayne Johnson", year: 1972, avatar: "💪" },
+            { name: "Beyoncé", year: 1981, avatar: "👑" },
+            { name: "Rihanna", year: 1988, avatar: "💎" },
+            { name: "Drake", year: 1986, avatar: "🎤" },
+            { name: "Kylie Jenner", year: 1997, avatar: "💄" },
+            { name: "Emma Watson", year: 1990, avatar: "🧙‍♀️" },
+            { name: "Chris Evans", year: 1981, avatar: "🛡️" },
+            { name: "Robert Downey Jr.", year: 1965, avatar: "🦾" },
+            { name: "Scarlett Johansson", year: 1984, avatar: "🦸‍♀️" },
+            { name: "Bruno Mars", year: 1985, avatar: "🕺" },
+            { name: "Ed Sheeran", year: 1991, avatar: "🎸" },
+            { name: "LeBron James", year: 1984, avatar: "🏀" },
+            { name: "Serena Williams", year: 1981, avatar: "🎾" }
+        ];
+
+        const personas = {
+            child: { icon: '🧸', type: 'The Explorer', traits: ['Curious', 'Playful', 'Learning', 'Growing'] },
+            teen: { icon: '🎮', type: 'The Rebel', traits: ['Energetic', 'Ambitious', 'Social', 'Dreaming'] },
+            young: { icon: '🚀', type: 'The Hustler', traits: ['Driven', 'Creative', 'Bold', 'Adventurous'] },
+            adult: { icon: '👔', type: 'The Builder', traits: ['Responsible', 'Focused', 'Leader', 'Provider'] },
+            senior: { icon: '🦉', type: 'The Sage', traits: ['Wise', 'Patient', 'Mentor', 'Experienced'] }
+        };
+
+        const milestones = [
+            { age: 0, label: 'Born' },
+            { age: 1, label: 'Walking' },
+            { age: 5, label: 'School' },
+            { age: 13, label: 'Teen' },
+            { age: 16, label: 'Drive' },
+            { age: 18, label: 'Adult' },
+            { age: 21, label: 'Legal' },
+            { age: 25, label: 'Quarter' },
+            { age: 30, label: 'Thirty' },
+            { age: 40, label: 'Forty' },
+            { age: 50, label: 'Golden' },
+            { age: 65, label: 'Retire' },
+            { age: 80, label: 'Legacy' },
+            { age: 100, label: 'Century' }
+        ];
+
+        const facts = [
+            { emoji: '😴', calc: d => Math.floor(d * 0.33), label: 'Days Slept' },
+            { emoji: '🍽️', calc: d => d * 3, label: 'Meals' },
+            { emoji: '🚶', calc: d => d * 7000, label: 'Steps' },
+            { emoji: '💧', calc: d => Math.floor(d * 2.5), label: 'Liters Water' },
+            { emoji: '📱', calc: d => d * 100, label: 'Times Scrolled' },
+            { emoji: '🎬', calc: d => Math.floor(d * 2.5), label: 'Hours TV' },
+            { emoji: '📚', calc: d => Math.floor(d * 0.5), label: 'Books Read' },
+            { emoji: '💤', calc: d => d * 8, label: 'Dreams' },
+            { emoji: '🎵', calc: d => Math.floor(d * 24), label: 'Songs Heard' },
+            { emoji: '☕', calc: d => Math.floor(d * 2), label: 'Cups Coffee' }
+        ];
+
+        // Utility
+        const getGen = year => {
+            if (year >= 2013) return 'alpha';
+            if (year >= 1997) return 'z';
+            if (year >= 1981) return 'millennial';
+            if (year >= 1965) return 'x';
+            return 'boomer';
+        };
+
+        const getPersona = age => {
+            if (age < 13) return personas.child;
+            if (age < 20) return personas.teen;
+            if (age < 35) return personas.young;
+            if (age < 60) return personas.adult;
+            return personas.senior;
+        };
+
+        const getDayName = date => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][date.getDay()];
+        
+        const getSeason = date => {
+            const m = date.getMonth();
+            if (m >= 2 && m <= 4) return { icon: '🌸', name: 'Spring', desc: 'Born in bloom' };
+            if (m >= 5 && m <= 7) return { icon: '☀️', name: 'Summer', desc: 'Sun child' };
+            if (m >= 8 && m <= 10) return { icon: '🍂', name: 'Autumn', desc: 'Fall wanderer' };
+            return { icon: '❄️', name: 'Winter', desc: 'Winter warrior' };
+        };
+
+        const formatNumber = n => n.toLocaleString();
+        const formatCompact = n => {
+            if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+            return n.toString();
+        };
+
+        // UI Functions
+        const selectGen = (gen, year, el) => {
+            document.querySelectorAll('.gen-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            selectedGen = gen;
+            document.getElementById('birthdate').value = `${year}-06-15`;
+        };
+
+        const celebs = {
+            find: birthYear => {
+                const matches = celebrities.filter(c => Math.abs(c.year - birthYear) <= 3);
+                matchedCelebs = matches.length > 0 ? matches : [celebrities.reduce((p, c) => Math.abs(c.year - birthYear) < Math.abs(p.year - birthYear) ? c : p)];
+                currentCelebIndex = 0;
+                return matchedCelebs[0];
+            },
+            refresh: () => {
+                if (matchedCelebs.length === 0) return;
+                currentCelebIndex = (currentCelebIndex + 1) % matchedCelebs.length;
+                const celeb = matchedCelebs[currentCelebIndex];
+                document.getElementById('celebAvatar').textContent = celeb.avatar;
+                document.getElementById('celebName').textContent = celeb.name;
+                document.getElementById('celebAge').textContent = (new Date().getFullYear() - celeb.year) + 'y';
+            }
+        };
+
+        const animateNumber = (id, target, duration = 1500) => {
+            const el = document.getElementById(id);
+            const start = 0;
+            const increment = target / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                el.textContent = formatNumber(Math.floor(current));
+            }, 16);
+        };
+
+        const updateChart = age => {
+            const ctx = document.getElementById('ageChart').getContext('2d');
+            if (ageChart) ageChart.destroy();
+
+            ageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0', '10', '20', '30', '40', '50', '60', '70', '80'],
+                    datasets: [{
+                        data: [0, age > 10 ? 10 : age, age > 20 ? 20 : age, age > 30 ? 30 : age, age > 40 ? 40 : age, age > 50 ? 50 : age, age > 60 ? 60 : age, age > 70 ? 70 : age, age > 80 ? 80 : age].map((v, i) => age >= i * 10 ? v : null),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#6366f1',
+                        pointRadius: age < 80 ? [0,0,0,0,0,0,0,0,0].map((_,i) => Math.abs(age - i*10) < 5 ? 6 : 0) : 4,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: {
+                        y: { display: false, max: 85 },
+                        x: { grid: { display: false, color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#555', font: { size: 10 } } }
+                    },
+                    interaction: { intersect: false }
+                }
+            });
+        };
+
+        const startCountdown = target => {
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            const update = () => {
+                const diff = target - new Date();
+                if (diff <= 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('cdDays').textContent = '0';
+                    document.getElementById('cdHours').textContent = '0';
+                    document.getElementById('cdMins').textContent = '0';
+                    document.getElementById('cdSecs').textContent = '0';
+                    return;
+                }
+                
+                document.getElementById('cdDays').textContent = Math.floor(diff / (1000 * 60 * 60 * 24));
+                document.getElementById('cdHours').textContent = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById('cdMins').textContent = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('cdSecs').textContent = Math.floor((diff % (1000 * 60)) / 1000);
+            };
+            
+            update();
+            countdownInterval = setInterval(update, 1000);
+        };
+
+        // Main Calculate
+        const calculate = () => {
+            const input = document.getElementById('birthdate');
+            if (!input.value) {
+                input.style.borderColor = '#ef4444';
+                input.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    input.style.borderColor = '';
+                    input.style.animation = '';
+                }, 500);
+                return;
+            }
+
+            const birthDate = new Date(input.value);
+            const now = new Date();
+            const year = birthDate.getFullYear();
+
+            if (birthDate > now) {
+                showToast('Please select a past date!');
+                return;
+            }
+
+            // Confetti
+            confetti({
+                particleCount: 200,
+                spread: 80,
+                origin: { y: 0.3 },
+                colors: ['#6366f1', '#8b5cf6', '#ec4899', '#22c55e', '#f59e0b', '#06b6d4']
+            });
+
+            // Age calc
+            let age = now.getFullYear() - year;
+            let months = now.getMonth() - birthDate.getMonth();
+            let days = now.getDate() - birthDate.getDate();
+
+            if (days < 0) {
+                months--;
+                days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+            }
+            if (months < 0) {
+                age--;
+                months += 12;
+            }
+
+            const diffMs = now - birthDate;
+            const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const totalHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const totalMins = Math.floor(diffMs / (1000 * 60));
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+
+            // Generation
+            const genKey = selectedGen || getGen(year);
+            const gen = generations[genKey];
+            const badge = document.getElementById('genBadge');
+            badge.className = `gen-badge ${gen.color}`;
+            document.getElementById('genIcon').textContent = gen.icon;
+            document.getElementById('genName').textContent = gen.name;
+            document.getElementById('genTagline').textContent = gen.tagline;
+
+            // Age
+            animateNumber('mainAge', age);
+            const season = getSeason(birthDate);
+            document.getElementById('ageMeta').innerHTML = `${getDayName(birthDate)} child • ${season.icon} ${season.name} • ${year}`;
+            animateNumber('ageMonths', age * 12 + months);
+            animateNumber('ageWeeks', Math.floor(totalDays / 7));
+            animateNumber('ageDays', totalDays);
+
+            // Celebrity
+            const celeb = celebs.find(year);
+            document.getElementById('celebAvatar').textContent = celeb.avatar;
+            document.getElementById('celebName').textContent = celeb.name;
+            document.getElementById('celebAge').textContent = (now.getFullYear() - celeb.year) + 'y';
+
+            // Persona
+            const persona = getPersona(age);
+            document.getElementById('personaIcon').textContent = persona.icon;
+            document.getElementById('personaType').textContent = persona.type;
+            document.getElementById('traits').innerHTML = persona.traits.map(t => `<span class="trait">${t}</span>`).join('');
+
+            // Stats
+            document.getElementById('statHeartbeats').textContent = formatCompact(totalMins * 80);
+            document.getElementById('statBreaths').textContent = formatCompact(totalMins * 16);
+            document.getElementById('statOrbit').textContent = (totalDays * 2.6).toFixed(0) + 'M';
+
+            // Timeline
+            const progress = Math.min((age / 80) * 100, 100);
+            setTimeout(() => document.getElementById('timelineProgress').style.width = progress + '%', 100);
+
+            // Active mark
+            document.querySelectorAll('.mark').forEach(m => m.classList.remove('active'));
+            const marks = document.querySelectorAll('.mark');
+            let activeIdx = age < 13 ? 0 : age < 20 ? 1 : age < 60 ? 2 : 3;
+            if (marks[activeIdx]) marks[activeIdx].classList.add('active');
+
+            // Milestones
+            const reached = milestones.filter(m => m.age <= age);
+            const next = milestones.find(m => m.age > age);
+            const recent = reached.slice(-3);
+            
+            document.getElementById('milestones').innerHTML = recent.map(m => `
+                <div class="milestone ${m.age === age ? 'current' : ''}">
+                    <div class="milestone-age">${m.age}</div>
+                    <div class="milestone-label">${m.label}</div>
+                </div>
+            `).join('') + (next ? `
+                <div class="milestone" style="opacity: 0.6; border-style: dashed;">
+                    <div class="milestone-age">${next.age}</div>
+                    <div class="milestone-label">Next</div>
+                </div>
+            ` : '');
+
+            // Facts
+            document.getElementById('factsScroll').innerHTML = facts.map(f => `
+                <div class="fact-pill" title="${f.label}">
+                    <span class="fact-emoji">${f.emoji}</span>
+                    <div class="fact-data">
+                        <div class="fact-num">${formatCompact(f.calc(totalDays))}</div>
+                        <div class="fact-label">${f.label}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Chart
+            updateChart(age);
+
+            // Countdown
+            const nextBday = new Date(now.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            if (nextBday < now) nextBday.setFullYear(now.getFullYear() + 1);
+            startCountdown(nextBday);
+
+            // Details
+            document.getElementById('detailNextBday').textContent = Math.ceil((nextBday - now) / (1000 * 60 * 60 * 24)) + 'd';
+            document.getElementById('detailOrbit').textContent = (totalDays * 2.6).toFixed(1) + 'B';
+            document.getElementById('detailProgress').textContent = progress.toFixed(1) + '%';
+
+            // Scroll
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        // Actions
+        const copyResults = () => {
+            const age = document.getElementById('mainAge').textContent;
+            const gen = document.getElementById('genName').textContent;
+            const text = `I'm ${age} years old (${gen})! Discover your age stats at Chrono by Tanvir Tasin 🚀`;
+            navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!'));
+        };
+
+        const shareResults = () => {
+            const text = `I'm ${document.getElementById('mainAge').textContent} years old! Calculate yours at Chrono`;
+            if (navigator.share) {
+                navigator.share({ title: 'My Age Stats', text: text }).catch(() => {});
+            } else {
+                copyResults();
+            }
+        };
+
+        const showToast = msg => {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        };
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && document.getElementById('birthdate') === document.activeElement) {
+                calculate();
+            }
+        });
+
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
